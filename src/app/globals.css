@@ -42,7 +42,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
-
+/* 18cef2 */
 :root {
   /* Base Variables */
   --radius: 0.625rem;
@@ -50,7 +50,7 @@
   /* Cyberpunk Theme Colors */
   --cyber-black: #000000;
   --cyber-dark: #0a0c14;
-  --cyber-blue-bright: #18cef2;
+  --cyber-blue-bright: #f2b118;
   --cyber-blue: #1089bd;
   --cyber-blue-dark: #0b4a7d;
   --cyber-blue-glow: #38bdf8;
