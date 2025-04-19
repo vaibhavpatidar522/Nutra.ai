@@ -19,7 +19,7 @@ import PlanPDFPreview from "@/components/PdfLayout";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 const ProfilePage = () => {
-  const pdfRef = useRef(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   //  effect to generate pdf when isgenerating pdf changes
