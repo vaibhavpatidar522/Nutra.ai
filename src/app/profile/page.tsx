@@ -1,11 +1,11 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import ProfileHeader from "@/components/ProfileHeader";
 import CornerElements from "@/components/CornerElements";
-import { AppleIcon, CalendarIcon, DumbbellIcon } from "lucide-react";
+import { AppleIcon, CalendarIcon, Download, DumbbellIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -15,8 +15,59 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import NoFitnessPlan from "@/components/NoFitnessPlan";
-
+import PlanPDFPreview from "@/components/PdfLayout";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 const ProfilePage = () => {
+  const pdfRef = useRef();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  //  effect to generate pdf when isgenerating pdf changes
+  useEffect(() => {
+    if (isGeneratingPdf && pdfRef.current) {
+      const generate = async () => {
+        const element = pdfRef.current;
+        console.log(element, "element");
+        if (!element) {
+          console.error("PDF element not found");
+          return;
+        }
+
+        const canvas = await html2canvas(element, { scale: 2 }); // High quality
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF("p", "mm", "a4");
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = pdfWidth;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Add first page
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        // Add more pages if needed
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+        pdf.save(`${currentPlan?.name}.pdf`);
+
+        setIsGeneratingPdf(false); // Cleanup
+      };
+
+      // Give it a little time to mount before capturing
+      setTimeout(generate, 100); // Small delay ensures ref is available
+    }
+  }, [isGeneratingPdf]);
   const { user } = useUser();
   const userId = user?.id as string;
   const allPlans = useQuery(api.plans.getUserPlans, { userId });
@@ -79,7 +130,20 @@ const ProfilePage = () => {
                 <h3 className="text-lg font-bold">
                   PLAN: <span className="text-primary">{currentPlan.name}</span>
                 </h3>
+                <Button
+                  onClick={() => {
+                    setIsGeneratingPdf(true);
+                    // handleDownloadPDF();
+                  }}
+                >
+                  Download PDF <Download />
+                </Button>
               </div>
+              {isGeneratingPdf && (
+                <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+                  <PlanPDFPreview ref={pdfRef} currentPlan={currentPlan} />
+                </div>
+              )}
 
               <Tabs defaultValue="workout" className="w-full">
                 <TabsList className="mb-6 w-full grid grid-cols-2 bg-cyber-terminal-bg border">
