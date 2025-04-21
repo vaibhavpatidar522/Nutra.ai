@@ -1,11 +1,17 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import ProfileHeader from "@/components/ProfileHeader";
 import CornerElements from "@/components/CornerElements";
-import { AppleIcon, CalendarIcon, Download, DumbbellIcon } from "lucide-react";
+import {
+  AppleIcon,
+  CalendarIcon,
+  Download,
+  DumbbellIcon,
+  Trash,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -18,6 +24,7 @@ import NoFitnessPlan from "@/components/NoFitnessPlan";
 import PlanPDFPreview from "@/components/PdfLayout";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { Id } from "../../../convex/_generated/dataModel";
 const ProfilePage = () => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -78,6 +85,19 @@ const ProfilePage = () => {
   const currentPlan = selectedPlanId
     ? allPlans?.find((plan) => plan._id === selectedPlanId)
     : activePlan;
+
+  const deletePlan = useMutation(api.plans.deletePlan);
+
+  const handleDelete = async (planId: Id<"plans">) => {
+    try {
+      await deletePlan({ planId });
+      // Optionally show a toast or refetch plans here
+      // alert("Plan deleted successfully");
+    } catch (err) {
+      console.error("Error deleting plan:", err);
+    }
+  };
+
   return (
     <section className="relative z-10 pt-12 pb-32 flex-grow container mx-auto px-4">
       <ProfileHeader user={user} />
@@ -99,22 +119,31 @@ const ProfilePage = () => {
 
             <div className="flex flex-wrap gap-2">
               {allPlans.map((plan) => (
-                <Button
-                  key={plan._id}
-                  onClick={() => setSelectedPlanId(plan._id)}
-                  className={`text-foreground border hover:text-white ${
-                    selectedPlanId === plan._id
-                      ? "bg-primary/20 text-primary border-primary"
-                      : "bg-transparent border-border hover:border-primary/50"
-                  }`}
-                >
-                  {plan.name}
-                  {plan.isActive && (
-                    <span className="ml-2 bg-green-500/20 text-green-500 text-xs px-2 py-0.5 rounded">
-                      ACTIVE
+                <>
+                  <Button
+                    key={plan._id}
+                    onClick={() => setSelectedPlanId(plan._id)}
+                    className={`text-foreground border hover:text-white ${
+                      selectedPlanId === plan._id
+                        ? "bg-primary/20 text-primary border-primary"
+                        : "bg-transparent border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {plan.name}
+                    {plan.isActive && (
+                      <span className="ml-2 bg-green-500/20 text-green-500 text-xs px-2 py-0.5 rounded">
+                        ACTIVE
+                      </span>
+                    )}
+                    <span
+                      className="bg-transparent ml-1 text-white cursor-pointer"
+                      onClick={() => handleDelete(plan._id)}
+                      key={plan._id + plan.name}
+                    >
+                      <Trash />
                     </span>
-                  )}
-                </Button>
+                  </Button>
+                </>
               ))}
             </div>
           </div>

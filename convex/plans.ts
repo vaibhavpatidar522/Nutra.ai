@@ -60,3 +60,12 @@ export const getUserPlans = query({
     return plans;
   },
 });
+
+export const deletePlan = mutation({
+  args: {
+    planId: v.id("plans"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.planId);
+  },
+});
