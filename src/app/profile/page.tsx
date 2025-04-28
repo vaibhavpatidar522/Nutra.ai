@@ -12,6 +12,7 @@ import {
   DumbbellIcon,
   Trash,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -25,6 +26,7 @@ import PlanPDFPreview from "@/components/PdfLayout";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { Id } from "../../../convex/_generated/dataModel";
+import { toast } from "sonner";
 const ProfilePage = () => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -137,7 +139,10 @@ const ProfilePage = () => {
                     )}
                     <span
                       className="bg-transparent ml-1 text-white cursor-pointer"
-                      onClick={() => handleDelete(plan._id)}
+                      onClick={() => {
+                        handleDelete(plan._id);
+                        toast("Plan deleted succesfully");
+                      }}
                       key={plan._id + plan.name}
                     >
                       <Trash />
