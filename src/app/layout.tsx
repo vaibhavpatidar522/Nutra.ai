@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Core.ai",
+  title: "Nutra.ai",
   description: "A modern fitness AI platform",
 };
 

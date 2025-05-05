@@ -22,7 +22,7 @@ const HomePage = () => {
           transition={{ duration: 0.7 }}
           className="md:text-8xl sm:text-6xl font-extrabold text-center mb-4 transform transition-all duration-700 ease-in-out hover:scale-105"
         >
-          Welcome to <span className="text-primary"> Core AI</span>
+          Welcome to <span className="text-primary"> Nutra AI</span>
         </motion.h1>
 
         {/* Subtitle */}

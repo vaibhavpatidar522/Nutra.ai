@@ -18,7 +18,7 @@ const PlanPDFPreview = forwardRef<HTMLDivElement, PDFLayoutProps>(
         className="w-full max-w-3xl p-8 bg-white text-black rounded shadow space-y-6"
       >
         <h1 className="text-3xl font-extrabold text-center border-b pb-4">
-          <span className="text-primary">Core AI</span> - Fitness Plan
+          <span className="text-primary">Nutra AI</span> - Fitness Plan
         </h1>
 
         <section>
