@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConvexClerkProvider from "@/providers/ConvexClerkProvider";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -41,7 +41,7 @@ export default function RootLayout({
 
           <div className="flex-grow ">{children}</div>
           <Toaster />
-          <Footer />
+          {/* <Footer /> */}
         </body>
       </html>
     </ConvexClerkProvider>
