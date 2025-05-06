@@ -12,10 +12,12 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Download artifact from previous workflow
+        uses: dawidd6/action-download-artifact@v3
         with:
+          workflow: ci.yml
           name: build-artifacts
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup SSH key
         run: |
