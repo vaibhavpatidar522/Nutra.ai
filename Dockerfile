@@ -1,30 +1,21 @@
-# Stage 1: Build
-FROM node:18-alpine AS builder
+# Dockerfile
 
-WORKDIR /app
-
-# Install dotenv-cli for build-time env loading
-RUN npm install -g dotenv-cli
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-COPY .env.production .env.production
-
-# Use dotenv to load env vars during build
-RUN dotenv -e .env.production -- npm run build
-
-# Stage 2: Runtime
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY --from=builder /app ./
-COPY .env.runtime .env.runtime
-
-RUN npm install --omit=dev
-
-EXPOSE 3000
-
-CMD ["sh", "-c", "dotenv -e .env.runtime -- npm start"]
+# --- builder stage ---
+    FROM node:20-alpine AS builder
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm install -g dotenv-cli
+    RUN npm install
+    COPY . .
+    COPY .env.production .env.production
+    RUN dotenv -e .env.production -- npm run build
+    
+    # --- final stage ---
+    FROM node:20-alpine
+    WORKDIR /app
+    COPY --from=builder /app ./
+    COPY .env.runtime .env.runtime
+    RUN npm install --omit=dev
+    EXPOSE 3000
+    CMD ["npm", "start"]
+    
