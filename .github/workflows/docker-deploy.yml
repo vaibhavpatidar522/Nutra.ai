@@ -1,0 +1,38 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Copy files to EC2
+        run: |
+          scp -i private_key.pem -o StrictHostKeyChecking=no \
+            docker-compose.yml \
+            .env.runtime \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
+
+      - name: Run Docker on EC2
+        run: |
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu
+            docker compose down || true
+            docker compose pull || true
+            docker compose up -d --build
+          EOF

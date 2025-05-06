@@ -3,36 +3,28 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Inject build-time variables
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ARG CLERK_SECRET_KEY
-ARG NEXT_PUBLIC_CLERK_SIGN_IN_URL
-ARG NEXT_PUBLIC_CLERK_SIGN_UP_URL
-ARG NEXT_PUBLIC_VAPI_WORKFLOW_ID
-ARG NEXT_PUBLIC_VAPI_API_KEY
-ARG CONVEX_DEPLOYMENT
-ARG NEXT_PUBLIC_CONVEX_URL
+# Install dotenv-cli for build-time env loading
+RUN npm install -g dotenv-cli
 
-ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ENV CLERK_SECRET_KEY=$CLERK_SECRET_KEY
-ENV NEXT_PUBLIC_CLERK_SIGN_IN_URL=$NEXT_PUBLIC_CLERK_SIGN_IN_URL
-ENV NEXT_PUBLIC_CLERK_SIGN_UP_URL=$NEXT_PUBLIC_CLERK_SIGN_UP_URL
-ENV NEXT_PUBLIC_VAPI_WORKFLOW_ID=$NEXT_PUBLIC_VAPI_WORKFLOW_ID
-ENV NEXT_PUBLIC_VAPI_API_KEY=$NEXT_PUBLIC_VAPI_API_KEY
-ENV CONVEX_DEPLOYMENT=$CONVEX_DEPLOYMENT
-ENV NEXT_PUBLIC_CONVEX_URL=$NEXT_PUBLIC_CONVEX_URL
+COPY package*.json ./
+RUN npm install
 
 COPY . .
+COPY .env.production .env.production
 
-RUN npm install && npm run build
+# Use dotenv to load env vars during build
+RUN dotenv -e .env.production -- npm run build
 
-# Stage 2: Run
+# Stage 2: Runtime
 FROM node:18-alpine
 
 WORKDIR /app
 
 COPY --from=builder /app ./
+COPY .env.runtime .env.runtime
+
+RUN npm install --omit=dev
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "dotenv -e .env.runtime -- npm start"]
