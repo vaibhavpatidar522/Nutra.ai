@@ -59,8 +59,14 @@ jobs:
           NEXT_PUBLIC_CONVEX_URL=${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
           EOF
 
-      - name: Docker Build
-        run: docker build -t fitness-ai-app .
+      - name: Recreate .env.production
+        run: |
+          echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
+
+      - name: Build Docker image
+        run: |
+          docker buildx create --use --name fitness-builder || true
+          docker buildx build --platform linux/amd64 -t fitness-ai-app .
 
       - name: Save Docker Image
         run: docker save fitness-ai-app > fitness-ai-app.tar
