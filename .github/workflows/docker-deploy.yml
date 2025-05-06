@@ -12,30 +12,15 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
 
-      - name: Setup SSH Key
+      - name: Setup SSH key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-
-      - name: Generate runtime .env file
-        run: |
-          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.runtime
-          echo "CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}" >> .env.runtime
-          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> .env.runtime
-          echo "CONVEX_DEPLOYMENT=${{ secrets.CONVEX_DEPLOYMENT }}" >> .env.runtime
-          echo "ANOTHER_ENV_VAR=${{ secrets.ANOTHER_ENV_VAR }}" >> .env.runtime
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        run: docker build -t fitness-ai-app .
-
-      - name: Save Docker image to file
-        run: docker save fitness-ai-app > fitness-ai-app.tar
 
       - name: Copy files to EC2
         run: |
@@ -43,7 +28,7 @@ jobs:
             fitness-ai-app.tar docker-compose.yml .env.runtime \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
 
-      - name: Run Docker on EC2
+      - name: Run Docker Compose on EC2
         run: |
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu
