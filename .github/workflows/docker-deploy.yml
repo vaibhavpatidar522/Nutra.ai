@@ -20,6 +20,14 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY_BASE64 }}" | base64 -d > private_key.pem
           chmod 600 private_key.pem
 
+      - name: Generate .env.runtime from GitHub secrets
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.runtime
+          echo "CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}" >> .env.runtime
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> .env.runtime
+          echo "CONVEX_DEPLOYMENT=${{ secrets.CONVEX_DEPLOYMENT }}" >> .env.runtime
+          echo "ANOTHER_ENV_VAR=${{ secrets.ANOTHER_ENV_VAR }}" >> .env.runtime
+
       - name: Copy files to EC2
         run: |
           scp -i private_key.pem -o StrictHostKeyChecking=no \
