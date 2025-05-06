@@ -15,12 +15,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build -t fitness-ai-app .
+
+      - name: Save Docker image to file
+        run: docker save fitness-ai-app > fitness-ai-app.tar
+
       - name: Setup SSH key
         run: |
-          echo "${{ secrets.EC2_SSH_KEY_BASE64 }}" | base64 -d > private_key.pem
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-      - name: Generate .env.runtime from GitHub secrets
+      - name: Generate runtime .env file
         run: |
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.runtime
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}" >> .env.runtime
@@ -31,16 +40,14 @@ jobs:
       - name: Copy files to EC2
         run: |
           scp -i private_key.pem -o StrictHostKeyChecking=no \
-            docker-compose.yml \
-            .env.runtime \
+            fitness-ai-app.tar docker-compose.yml .env.runtime \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
 
       - name: Run Docker on EC2
         run: |
-          ssh -i private_key.pem -o StrictHostKeyChecking=no \
-            ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu
+            docker load < fitness-ai-app.tar
             docker compose down || true
-            docker compose pull || true
-            docker compose up -d --build
+            docker compose up -d
           EOF
