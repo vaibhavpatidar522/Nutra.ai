@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Set up SSH
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          echo "${{ secrets.EC2_SSH_KEY_RAW }}" > key.pem
           chmod 600 key.pem
 
       - name: Deploy on EC2
