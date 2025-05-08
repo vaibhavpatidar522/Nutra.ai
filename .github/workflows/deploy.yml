@@ -1,0 +1,34 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["Build and Push to GHCR"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            echo "Logging in to GHCR..."
+            echo "${{ secrets.GITH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Pulling and running Nutra.ai..."
+            docker pull ghcr.io/${{ github.repository_owner }}/nutra-ai:latest
+
+            echo "${{ secrets.RUNTIME_ENV }}" > .env
+
+            docker stop nutra-ai || true
+            docker rm nutra-ai || true
+            docker run -d --env-file .env -p 80:3000 --name nutra-ai ghcr.io/${{ github.repository_owner }}/nutra-ai:latest
+          EOF
