@@ -2,3 +2,5 @@ node_modules
 .next
 deploy.sh
 fitness-ai-app.tar
+
+launch-nutra-ec2.sh

@@ -48,3 +48,5 @@ deploy.sh
 /deploy.sh
 
 fitness-ai-app.tar
+
+launch-nutra-ec2.sh
