@@ -21,6 +21,7 @@ jobs:
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             echo "Logging in to GHCR..."
+            sudo systemctl start docker
             echo "${{ secrets.GITH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             echo "Pulling and running Nutra.ai..."
